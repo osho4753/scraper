@@ -65,7 +65,7 @@ dynamic websites on various platforms.
 
 ## Special cases and modal windows
 
-Some websites display T&Cs in modal windows or as dynamically loaded blocks. In these cases, an experimental method is implemented:
+Some websites display T&Cs in modal windows or as dynamically loaded blocks. In these cases, an experimental method is implemented in scraper_additional.py for an example:
 
 # Example:
 
@@ -82,3 +82,5 @@ Limitations:
 - Manual configuration for the website is required (e.g., cookies button — ID ‘onetrust-accept-btn-handler’).
 
 - Only works on websites that support Page.printToPDF by button(onclick="window.print()").
+
+- Therefore, a separate script has been implemented for a specific website so as not to disrupt or load the automated scraper at this stage.
