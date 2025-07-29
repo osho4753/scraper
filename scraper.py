@@ -187,8 +187,8 @@ def detect_pdf_link(driver, base_url):
 def extract_terms(driver, homepage_url):
     try:
         try:
-            requests.get("https://www.mader.cz", verify=False, timeout=5)
-            logging.info(f"[requests test] Status: {requests.status_code}")
+            response = requests.get("https://www.mader.cz", verify=False, timeout=5)
+            logging.info(f"[requests test] Status: {response.status_code}")
         except Exception as e:
             logging.error(f"[requests test] Failed: {e}")
         logging.info(f"[extract_terms] {homepage_url}")
