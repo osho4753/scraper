@@ -1,13 +1,14 @@
 FROM python:3.10-slim
 
-# Установка зависимостей
+# Обновление и установка зависимостей
 RUN apt-get update && apt-get install -y \
     wget \
-    unzip \
     curl \
+    unzip \
     gnupg \
     ca-certificates \
     fonts-liberation \
+    libasound2 \
     libatk-bridge2.0-0 \
     libatk1.0-0 \
     libcups2 \
@@ -19,25 +20,25 @@ RUN apt-get update && apt-get install -y \
     libxcomposite1 \
     libxdamage1 \
     libxrandr2 \
-    xdg-utils \
-    libasound2 \
     libxshmfence1 \
     libgbm1 \
     libgtk-3-0 \
+    xdg-utils \
     && rm -rf /var/lib/apt/lists/*
 
-# Установка Chrome (через официальный источник CfT)
-RUN wget -O chrome.deb https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/114.0.5735.90/linux64/chrome-for-testing_114.0.5735.90-1_amd64.deb \
-    && apt install ./chrome.deb -y \
-    && rm chrome.deb
+# Добавление ключа и установка Google Chrome stable
+RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor > /etc/apt/trusted.gpg.d/google-chrome.gpg \
+    && echo "deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable
 
-# Установка Python-зависимостей
+# Установка Python зависимостей
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копируем код
+# Копирование исходников
 COPY . .
 
-# Запуск Flask-приложения
+# Запуск приложения
 CMD ["python", "app.py"]
