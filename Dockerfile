@@ -1,22 +1,24 @@
 FROM python:3.10-slim
 
-RUN apt-get update && apt-get install -y \
-    wget curl gnupg ca-certificates fonts-liberation \
-    libglib2.0-0 libnss3 libgconf-2-4 libfontconfig1 \
-    libxss1 libappindicator3-1 libasound2 libatk-bridge2.0-0 \
-    libgbm1 libgtk-3-0 libu2f-udev libvulkan1 --no-install-recommends && \
+# Установка зависимостей для Chrome и Selenium
+RUN apt-get update && \
+    apt-get install -y wget unzip gnupg2 curl ca-certificates fonts-liberation libappindicator3-1 libasound2 libatk-bridge2.0-0 \
+    libatk1.0-0 libcups2 libdbus-1-3 libgdk-pixbuf2.0-0 libnspr4 libnss3 libx11-xcb1 libxcomposite1 libxdamage1 \
+    libxrandr2 xdg-utils libgbm1 libgtk-3-0 && \
     rm -rf /var/lib/apt/lists/*
 
-RUN curl -fsSL https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-linux.gpg && \
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-linux.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
-    apt-get update && apt-get install -y google-chrome-stable && \
-    rm -rf /var/lib/apt/lists/*
+# Установка Google Chrome
+RUN wget -q -O chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+    apt-get install -y ./chrome.deb && \
+    rm chrome.deb
 
+# Копируем проект
 WORKDIR /app
 COPY . .
 
+# Устанавливаем Python-зависимости
+RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN pip install webdriver-manager
-
+# Запуск Flask-сервера
 CMD ["python", "scraper.py"]

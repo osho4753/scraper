@@ -47,19 +47,19 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
 }
 
+
 def init_driver():
     options = webdriver.ChromeOptions()
-    options.add_argument("--no-sandbox")
     options.add_argument("--headless")
+    options.add_argument("--no-sandbox")
     options.add_argument("--disable-gpu")
+    options.add_argument("--disable-dev-shm-usage")
 
-    driverPath = "/usr/bin/chromedriver"
-    service = Service(driverPath)
+    service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
 
-    logging.info("Chrome WebDriver initialized")
+    logging.info("Chrome WebDriver initialized with webdriver-manager")
     return driver
-
 headers = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15",
     "Referer": "https://www.marionnaud.cz/",

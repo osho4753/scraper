@@ -1,6 +1,6 @@
 selenium
+webdriver-manager
+flask
 beautifulsoup4
 requests
 pdfminer.six
-webdriver-manager
-flask
