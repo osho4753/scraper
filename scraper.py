@@ -49,8 +49,7 @@ HEADERS = {
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)...",
-    "Referer": "https://www.marionnaud.cz/",
-    "Accept": "application/pdf",
+    "Referer": "https://www.mader.cz/",
     "Accept-Language": "cs-CZ,cs;q=0.9,en;q=0.8",
     "Connection": "keep-alive",
     "DNT": "1",
@@ -187,7 +186,7 @@ def detect_pdf_link(driver, base_url):
 def extract_terms(driver, homepage_url):
     try:
         try:
-            response = requests.get("https://www.mader.cz", verify=False, timeout=5)
+            response = requests.get("https://www.mader.cz",headers=headers, verify=False, timeout=5)
             logging.info(f"[requests test] Status: {response.status_code}")
         except Exception as e:
             logging.error(f"[requests test] Failed: {e}")
