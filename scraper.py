@@ -14,6 +14,9 @@ from urllib.parse import urljoin, unquote
 from pdfminer.high_level import extract_text
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+from flask import Flask, jsonify
+import os
+import threading
 
 TERMS_KEYWORDS = [
     "aktuální obchodní podmínky",
@@ -38,16 +41,12 @@ HEADERS = {
 }
 
 def init_driver():
-    options = Options()
-    options.add_argument("--headless=new")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-blink-features=AutomationControlled")
-    options.add_argument(f"user-agent={HEADERS['User-Agent']}")
-
-    service = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=service, options=options)
+    options = webdriver.ChromeOptions()
+    options.add_argument("no-sandbox")
+    options.add_argument("headless")
+    options.add_argument("disable-gpu")
+    driverPath = "/usr/bin/chromedriver"
+    driver = webdriver.Chrome(driverPath, chrome_options=options)
     return driver
 
 headers = {
@@ -223,6 +222,25 @@ def main(homepage):
     finally:
         driver.quit()
 
+
+app = Flask(__name__)
+
+def run_scraper():
+    try:
+        main('https://www.mader.cz/')  
+    except Exception as e:
+        print(f"Error in scraper: {e}")
+
+@app.route("/")
+def hello():
+    return "Parser is alive!"
+
+@app.route("/start-scraper")
+def start_scraper():
+    thread = threading.Thread(target=run_scraper)
+    thread.start()
+    return jsonify({"status": "scraper started"})
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Scrape terms and conditions from a given URL.")    
-    main('https://www.mader.cz/')
+    port = int(os.environ.get("PORT", 3000))
+    app.run(host="0.0.0.0", port=port)
