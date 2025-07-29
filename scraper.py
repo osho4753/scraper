@@ -24,6 +24,8 @@ try:
 
     from webdriver_manager.chrome import ChromeDriverManager
     from flask import Flask, jsonify
+    import subprocess
+    logging.info(subprocess.getoutput("google-chrome-stable --version"))
 
 except Exception as e:
     print(f"[FATAL IMPORT ERROR] {e}")
@@ -49,7 +51,7 @@ HEADERS = {
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)...",
-    "Referer": "https://www.alza.cz/",
+    "Referer": "https://www.martessport.eu/cz",
     "Accept-Language": "cs-CZ,cs;q=0.9,en;q=0.8",
     "Connection": "keep-alive",
     "DNT": "1",
@@ -68,6 +70,7 @@ def init_driver():
         options.add_argument(
         "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
         )
+
         driver = webdriver.Chrome(options=options)
         logging.info("Chrome WebDriver initialized")
         return driver
@@ -95,7 +98,6 @@ def find_terms_link(driver, homepage_url):
         links = get_all_links(driver, homepage_url)
         for text, url in links:
             combined = (text + " " + url).lower()
-            logging.info(combined)
             if any(keyword in combined for keyword in TERMS_KEYWORDS):
                 return url
         return None
@@ -186,12 +188,18 @@ def detect_pdf_link(driver, base_url):
 def extract_terms(driver, homepage_url):
     try:
         try:
-            response = requests.get("https://www.alza.cz",headers=headers, verify=False, timeout=5)
+            response = requests.get("https://www.martessport.eu/cz",headers=headers, verify=False, timeout=5)
             logging.info(f"[requests test] Status: {response.status_code}")
         except Exception as e:
             logging.error(f"[requests test] Failed: {e}")
         logging.info(f"[extract_terms] {homepage_url}")
-        driver.get(homepage_url)
+
+        try:
+            driver.get(homepage_url)
+            logging.info(f"[extract_terms] Page length: {len(driver.page_source)}")
+        except Exception as e:
+            logging.error(f"[extract_terms] Failed to open URL: {e}")
+            return        
         driver.set_window_size(1600, 1900)
         time.sleep(2)
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "a")))
@@ -235,7 +243,7 @@ app = Flask(__name__)
 def run_scraper():
     try:
         logging.info("Starting scraper...")
-        main('https://www.alza.cz/')
+        main('https://www.martessport.eu/cz')
         logging.info("Scraper finished.")
     except Exception as e:
         logging.error(f"[run_scraper] {e}")
