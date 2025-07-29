@@ -64,8 +64,9 @@ def init_driver():
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-blink-features=AutomationControlled")
-        options.add_argument(f"user-agent={HEADERS}")
-
+        options.add_argument(
+            "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
+        )
         driver = webdriver.Chrome(options=options)
         logging.info("Chrome WebDriver initialized")
         return driver
@@ -183,6 +184,11 @@ def detect_pdf_link(driver, base_url):
 
 def extract_terms(driver, homepage_url):
     try:
+        try:
+            r = requests.get("https://www.mader.cz", timeout=5)
+            logging.info(f"[requests test] Status: {r.status_code}")
+        except Exception as e:
+            logging.error(f"[requests test] Failed: {e}")
         logging.info(f"[extract_terms] {homepage_url}")
         driver.get(homepage_url)
         driver.set_window_size(1600, 1900)
