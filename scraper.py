@@ -225,11 +225,6 @@ def main(homepage):
 
 app = Flask(__name__)
 
-def run_scraper():
-    try:
-        main('https://www.mader.cz/')  
-    except Exception as e:
-        print(f"Error in scraper: {e}")
 
 @app.route("/")
 def hello():
@@ -237,8 +232,11 @@ def hello():
 
 @app.route("/start-scraper")
 def start_scraper():
-    thread = threading.Thread(target=run_scraper)
-    thread.start()
+    try:
+        print('try')
+        main('https://www.mader.cz/')  
+    except Exception as e:
+        print(f"Error in scraper: {e}")
     return jsonify({"status": "scraper started"})
 
 if __name__ == "__main__":
