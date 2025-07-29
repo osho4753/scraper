@@ -4,4 +4,3 @@ requests
 pdfminer.six
 webdriver-manager
 flask
-logging
