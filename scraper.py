@@ -17,6 +17,14 @@ from webdriver_manager.chrome import ChromeDriverManager
 from flask import Flask, jsonify
 import os
 import threading
+import logging
+
+
+logging.basicConfig(
+    filename='/tmp/scraper.log',
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s:%(message)s'
+)
 
 TERMS_KEYWORDS = [
     "aktuální obchodní podmínky",
@@ -77,7 +85,7 @@ def find_terms_link(driver, homepage_url):
     
     for text, url in links:
         combined = (text + " " + url).lower()
-        print(combined)
+        logging.info(combined)
         if any(keyword in combined for keyword in TERMS_KEYWORDS):
             return url
         
@@ -105,9 +113,9 @@ def download_and_extract_pdf(pdf_url,homepage_url):
     text = extract_text(filename)
     fin = clean_text(text)
     if text:
-        print(fin[:150])
+        logging.info(fin[:150])
     else:
-        print(homepage_url, "errors.json")
+        logging.info(homepage_url, "errors.json")
 
     return fin
 
@@ -122,7 +130,7 @@ def extract_text_from_html(driver,homepage_url):
 
     main = soup.find("main")
     if main:
-        print('main')
+        logging.info('main')
         candidates.append(main)
 
     for div in soup.find_all("div", class_=True):
@@ -152,9 +160,9 @@ def extract_text_from_html(driver,homepage_url):
     fin = clean_text(final_text)
 
     if fin:
-        print(fin[:150])
+        logging.info(fin[:150])
     else:
-        print(homepage_url, "errors.json")
+        logging.info(homepage_url, "errors.json")
 
     return fin
 
@@ -196,7 +204,7 @@ def extract_terms(driver, homepage_url):
 
     terms_url = find_terms_link(driver, homepage_url)
     if not terms_url:
-        print("❌ There is no T&C link on the homepage.")
+        logging.info("❌ There is no T&C link on the homepage.")
         return
 
     driver.get(terms_url)
@@ -205,7 +213,7 @@ def extract_terms(driver, homepage_url):
     pdf_url = detect_pdf_link(driver, terms_url)
 
 
-    print(f"📄 PDF URL: {pdf_url}")
+    logging.info(f"📄 PDF URL: {pdf_url}")
 
     if pdf_url or pdf_url:
         return download_and_extract_pdf(pdf_url,homepage_url)
@@ -218,13 +226,22 @@ def main(homepage):
     try:
         extract_terms(driver, homepage)
     except Exception as e:
-        print(f"[Error] {e}")
+        logging.info(f"[Error] {e}")
     finally:
         driver.quit()
 
 
 app = Flask(__name__)
 
+def run_scraper():
+    try:
+        logging.info("Starting Selenium scraper...")
+
+        main('https://www.mader.cz/')  
+        logging.info("Selenium scraper finished successfully.")
+
+    except Exception as e:
+        logging.info(f"Error in scraper: {e}")
 
 @app.route("/")
 def hello():
@@ -232,11 +249,8 @@ def hello():
 
 @app.route("/start-scraper")
 def start_scraper():
-    try:
-        print('try')
-        main('https://www.mader.cz/')  
-    except Exception as e:
-        print(f"Error in scraper: {e}")
+    thread = threading.Thread(target=run_scraper)
+    thread.start()
     return jsonify({"status": "scraper started"})
 
 if __name__ == "__main__":
