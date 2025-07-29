@@ -41,4 +41,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Запуск приложения
-CMD ["python", "app.py"]
+CMD ["python", "scraper.py"]
