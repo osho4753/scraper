@@ -19,6 +19,8 @@ try:
     from selenium.webdriver.support.ui import WebDriverWait
     from selenium.webdriver.support import expected_conditions as EC
     from selenium.webdriver.chrome.service import Service
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     from webdriver_manager.chrome import ChromeDriverManager
     from flask import Flask, jsonify
@@ -185,8 +187,8 @@ def detect_pdf_link(driver, base_url):
 def extract_terms(driver, homepage_url):
     try:
         try:
-            r = requests.get("https://www.mader.cz", timeout=5)
-            logging.info(f"[requests test] Status: {r.status_code}")
+            requests.get("https://www.mader.cz", verify=False, timeout=5)
+            logging.info(f"[requests test] Status: {requests.status_code}")
         except Exception as e:
             logging.error(f"[requests test] Failed: {e}")
         logging.info(f"[extract_terms] {homepage_url}")
