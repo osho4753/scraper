@@ -49,7 +49,7 @@ HEADERS = {
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)...",
-    "Referer": "https://www.mader.cz/",
+    "Referer": "https://www.alza.cz/",
     "Accept-Language": "cs-CZ,cs;q=0.9,en;q=0.8",
     "Connection": "keep-alive",
     "DNT": "1",
@@ -66,7 +66,7 @@ def init_driver():
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument(
-            "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
+        "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
         )
         driver = webdriver.Chrome(options=options)
         logging.info("Chrome WebDriver initialized")
@@ -186,7 +186,7 @@ def detect_pdf_link(driver, base_url):
 def extract_terms(driver, homepage_url):
     try:
         try:
-            response = requests.get("https://www.mader.cz",headers=headers, verify=False, timeout=5)
+            response = requests.get("https://www.alza.cz",headers=headers, verify=False, timeout=5)
             logging.info(f"[requests test] Status: {response.status_code}")
         except Exception as e:
             logging.error(f"[requests test] Failed: {e}")
@@ -235,7 +235,7 @@ app = Flask(__name__)
 def run_scraper():
     try:
         logging.info("Starting scraper...")
-        main('https://www.mader.cz/')
+        main('https://www.alza.cz/')
         logging.info("Scraper finished.")
     except Exception as e:
         logging.error(f"[run_scraper] {e}")
