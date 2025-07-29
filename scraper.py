@@ -179,17 +179,20 @@ def detect_pdf_link(driver, base_url):
 
 def extract_terms(driver, homepage_url):
     try:
+        logging.info(f"[extract_terms] {homepage_url}")
         driver.get(homepage_url)
         driver.set_window_size(1600, 1900)
         time.sleep(2)
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "a")))
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(2)
+        logging.info(f"driver is in {homepage_url}")
 
         terms_url = find_terms_link(driver, homepage_url)
         if not terms_url:
             logging.info("❌ No T&C link found.")
             return
+        logging.info(f"driver find {terms_url}")
 
         driver.get(terms_url)
         time.sleep(5)
