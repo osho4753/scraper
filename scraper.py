@@ -18,14 +18,13 @@ from flask import Flask, jsonify
 import os
 import threading
 import logging
-
+import sys
 
 logging.basicConfig(
-    filename='/tmp/scraper.log',
+    stream=sys.stdout,   
     level=logging.INFO,
     format='%(asctime)s %(levelname)s:%(message)s'
 )
-
 TERMS_KEYWORDS = [
     "aktuální obchodní podmínky",
     "obchodní podmínky",
@@ -54,7 +53,10 @@ def init_driver():
     options.add_argument("headless")
     options.add_argument("disable-gpu")
     driverPath = "/usr/bin/chromedriver"
+    
     driver = webdriver.Chrome(driverPath, chrome_options=options)
+    logging.info("Chrome WebDriver initialized")
+
     return driver
 
 headers = {
