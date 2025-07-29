@@ -1,24 +1,43 @@
 FROM python:3.10-slim
 
-# Установка зависимостей для Chrome и Selenium
-RUN apt-get update && \
-    apt-get install -y wget unzip gnupg2 curl ca-certificates fonts-liberation libappindicator3-1 libasound2 libatk-bridge2.0-0 \
-    libatk1.0-0 libcups2 libdbus-1-3 libgdk-pixbuf2.0-0 libnspr4 libnss3 libx11-xcb1 libxcomposite1 libxdamage1 \
-    libxrandr2 xdg-utils libgbm1 libgtk-3-0 && \
-    rm -rf /var/lib/apt/lists/*
+# Установка зависимостей
+RUN apt-get update && apt-get install -y \
+    wget \
+    unzip \
+    curl \
+    gnupg \
+    ca-certificates \
+    fonts-liberation \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libcups2 \
+    libdbus-1-3 \
+    libgdk-pixbuf2.0-0 \
+    libnspr4 \
+    libnss3 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    xdg-utils \
+    libasound2 \
+    libxshmfence1 \
+    libgbm1 \
+    libgtk-3-0 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Установка Google Chrome
-RUN wget -q -O chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
-    apt-get install -y ./chrome.deb && \
-    rm chrome.deb
+# Установка Chrome (через официальный источник CfT)
+RUN wget -O chrome.deb https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/114.0.5735.90/linux64/chrome-for-testing_114.0.5735.90-1_amd64.deb \
+    && apt install ./chrome.deb -y \
+    && rm chrome.deb
 
-# Копируем проект
+# Установка Python-зависимостей
 WORKDIR /app
-COPY . .
-
-# Устанавливаем Python-зависимости
-RUN pip install --upgrade pip
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Запуск Flask-сервера
-CMD ["python", "scraper.py"]
+# Копируем код
+COPY . .
+
+# Запуск Flask-приложения
+CMD ["python", "app.py"]
