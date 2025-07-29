@@ -1,4 +1,5 @@
-beautifulsoup4
 selenium
+beautifulsoup4
 requests
 pdfminer.six
+webdriver-manager

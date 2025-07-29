@@ -1,3 +1,5 @@
+import json
+import os
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -10,19 +12,25 @@ import time
 import requests
 from urllib.parse import urljoin, unquote
 from pdfminer.high_level import extract_text
-
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 
 TERMS_KEYWORDS = [
     "aktuální obchodní podmínky",
     "obchodní podmínky",
+    "obchodni-podminky",
     "prodejní podmínky",
     "podmínky prodeje",
     "všeobecné obchodní podmínky",
     "terms and conditions",
+    "terms",
+    "vop",
     "general terms",
     "obchodni_podminky",
-    "všeobecné prodejní podmínky"
+    "všeobecné prodejní podmínky",
+    "vše o nákupu"
 ]
+
 
 
 HEADERS = {
@@ -31,15 +39,26 @@ HEADERS = {
 
 def init_driver():
     options = Options()
-
-    options.add_argument("--headless") 
+    options.add_argument("--headless=new")
+    options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_argument(f"user-agent={HEADERS['User-Agent']}")
 
-    driver = webdriver.Chrome(options=options)
-
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=options)
     return driver
+
+headers = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15",
+    "Referer": "https://www.marionnaud.cz/",
+    "Accept": "application/pdf",
+    "Accept-Language": "cs-CZ,cs;q=0.9,en;q=0.8",
+    "Connection": "keep-alive",
+    "DNT": "1",  # Do Not Track
+    "Upgrade-Insecure-Requests": "1",
+}
 
 def get_all_links(driver, homepage_url):
     links = []
@@ -56,16 +75,26 @@ def get_all_links(driver, homepage_url):
 
 def find_terms_link(driver, homepage_url):
     links = get_all_links(driver, homepage_url)
-
+    
     for text, url in links:
         combined = (text + " " + url).lower()
-
+        print(combined)
         if any(keyword in combined for keyword in TERMS_KEYWORDS):
             return url
+        
     return None
 
-def download_and_extract_pdf(pdf_url):
-    response = requests.get(pdf_url, timeout=10, headers=HEADERS)
+def clean_text(text):
+    """Basic text cleaning: multiple newlines/spaces, strip."""
+    if not text: return ""
+    text = re.sub(r'\s*\n\s*', '\n', text)  # Collapse newlines with surrounding spaces to one newline
+    text = re.sub(r'[ \t]+', ' ', text)      # Collapse multiple spaces/tabs to single space
+    return text.strip()
+
+def download_and_extract_pdf(pdf_url,homepage_url):
+    session = requests.Session()
+    session.headers.update(headers)
+    response = requests.get(pdf_url, headers=headers,stream=True, verify=False, timeout=10)
     response.raise_for_status()
 
     filename = "terms_and_conditions.pdf"
@@ -73,14 +102,17 @@ def download_and_extract_pdf(pdf_url):
     with open(filename, "wb") as f:
         f.write(response.content)
 
+    safe_name = re.sub(r'[^a-zA-Z0-9_-]', '_', homepage_url)
     text = extract_text(filename)
+    fin = clean_text(text)
+    if text:
+        print(fin[:150])
+    else:
+        print(homepage_url, "errors.json")
 
-    save_to_file(text, "terms_and_conditions.txt")
+    return fin
 
-    print("✅ terms_and_conditions.txt")
-    return text
-
-def extract_text_from_html(driver):
+def extract_text_from_html(driver,homepage_url):
     WebDriverWait(driver, 10).until(
     EC.presence_of_element_located((By.XPATH, "//body"))
     )
@@ -91,6 +123,7 @@ def extract_text_from_html(driver):
 
     main = soup.find("main")
     if main:
+        print('main')
         candidates.append(main)
 
     for div in soup.find_all("div", class_=True):
@@ -98,9 +131,7 @@ def extract_text_from_html(driver):
 
         if any(kw in class_names for kw in ["content", "text", "terms", "article"]):
             candidates.append(div)
-            print(f"Found div with class: {div}")
-
-    if not candidates:
+    if not candidates or main not in candidates or len(candidates) < 10:
         body = soup.find("body")
 
         if body:
@@ -118,16 +149,18 @@ def extract_text_from_html(driver):
         extracted_texts.append(text)
 
     final_text = "\n\n".join(extracted_texts)
+    safe_name = re.sub(r'[^a-zA-Z0-9_-]', '', homepage_url)
+    fin = clean_text(final_text)
 
-    save_to_file(final_text, "terms_and_conditions.txt")
+    if fin:
+        print(fin[:150])
+    else:
+        print(homepage_url, "errors.json")
 
-    print("✅ terms_and_conditions.txt")
-    return final_text
-
+    return fin
 
 def detect_pdf_link(driver, base_url):
     links = driver.find_elements(By.TAG_NAME, "a")
-
     for link in links:
         href = link.get_attribute("href")
         text = link.text.strip().lower()
@@ -142,7 +175,6 @@ def detect_pdf_link(driver, base_url):
 
             if match:
                 return match.group(1)
-            
         elif ".pdf" in href.lower() and (
             any(k in decoded for k in TERMS_KEYWORDS) or any(k in text for k in TERMS_KEYWORDS)
         ):
@@ -150,22 +182,20 @@ def detect_pdf_link(driver, base_url):
         
     return None
 
-def save_to_file(text, filename):
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(text)
 
 def extract_terms(driver, homepage_url):
     driver.get(homepage_url)
     driver.set_window_size(1600, 1900)
+    safe_name = re.sub(r'[^a-zA-Z0-9_-]', '', homepage_url)
+    time.sleep(2)
+
 
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "a")))
 
-    time.sleep(2)
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
     time.sleep(2)
 
     terms_url = find_terms_link(driver, homepage_url)
-
     if not terms_url:
         print("❌ There is no T&C link on the homepage.")
         return
@@ -175,11 +205,14 @@ def extract_terms(driver, homepage_url):
 
     pdf_url = detect_pdf_link(driver, terms_url)
 
-    if pdf_url:
-        return download_and_extract_pdf(pdf_url)
-    else:
-        return extract_text_from_html(driver)
 
+    print(f"📄 PDF URL: {pdf_url}")
+
+    if pdf_url or pdf_url:
+        return download_and_extract_pdf(pdf_url,homepage_url)
+    else:
+        return extract_text_from_html(driver,homepage_url)
+    
 def main(homepage):
     driver = init_driver()
 
@@ -191,8 +224,5 @@ def main(homepage):
         driver.quit()
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Scrape terms and conditions from a given URL.")
-    parser.add_argument('url', metavar='URL', type=str)
-    args = parser.parse_args()
-
-    main(args.url)
+    parser = argparse.ArgumentParser(description="Scrape terms and conditions from a given URL.")    
+    main('https://www.mader.cz/')
