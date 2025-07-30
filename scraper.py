@@ -48,9 +48,13 @@ def get_driver():
     options.add_argument("--window-size=1920x1080")
 
     # Используем локальный ChromeDriver
-    # Убедитесь, что CHROMEDRIVER_PATH указывает на путь к исполняемому файлу chromedriver/chromium-driver
-    service = Service(executable_path=os.environ.get("CHROMEDRIVER_PATH", "/usr/bin/chromium-driver"))
-    driver = webdriver.Chrome(service=service, options=options)
+    remote_url = "http://localhost:4444/wd/hub" # Жестко кодируем localhost
+    logging.info(f"Attempting to connect to Selenium at: {remote_url}")
+
+    driver = webdriver.Remote(
+        command_executor=remote_url,
+        options=options
+    )
     return driver
 # 🔎 Поиск ссылки на условия
 def find_terms_link(driver, homepage_url):
