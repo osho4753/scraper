@@ -175,7 +175,7 @@ def hello():
 @app.route("/extract-text")
 def extract_text_route():
     try:
-        homepage = "https://www.martessport.eu/cz"
+        homepage = "https://www.google.com"
         text = extract_terms(homepage)
         return jsonify({
             "status": "ok",
