@@ -75,7 +75,9 @@ def init_driver():
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument(f"user-agent={HEADERS['User-Agent']}")
 
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()),options=options)
+
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=options)
         logging.info("Chrome WebDriver initialized")
         return driver
     except Exception as e:
