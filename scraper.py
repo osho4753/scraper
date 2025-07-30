@@ -13,8 +13,10 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service
+# Удалите эти импорты, так как они не используются для remote WebDriver
+# from webdriver_manager.chrome import ChromeDriverManager
+# from selenium.webdriver.chrome.service import Service
+
 # 🔧 Логгинг
 logging.basicConfig(
     stream=sys.stdout,
@@ -45,8 +47,15 @@ def get_driver():
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920x1080")
 
-
-    remote_url = "https://standalone-chrome-latest-27xo.onrender.com/"
+    # Используем переменную окружения для хоста Selenium
+    # 'selenium' - это имя сервиса в вашем docker-compose.yml для локального запуска
+    # На Render это будет внутреннее имя вашего Selenium сервиса (например, 'my-selenium.internal')
+    selenium_host = os.environ.get("SELENIUM_HOST", "selenium")
+    
+    # Формируем полный URL для подключения к Selenium
+    # /wd/hub - это стандартный путь для API Selenium WebDriver
+    remote_url = f"http://{selenium_host}:4444/wd/hub"
+    logging.info(f"Attempting to connect to Selenium at: {remote_url}")
 
     driver = webdriver.Remote(
         command_executor=remote_url,
@@ -54,6 +63,7 @@ def get_driver():
     )
 
     return driver
+
 # 🔎 Поиск ссылки на условия
 def find_terms_link(driver, homepage_url):
     try:
