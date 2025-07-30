@@ -10,9 +10,9 @@ from pdfminer.high_level import extract_text
 import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+
 # Удалите эти импорты, так как они не используются для remote WebDriver
 # from webdriver_manager.chrome import ChromeDriverManager
 # from selenium.webdriver.chrome.service import Service
@@ -47,19 +47,10 @@ def get_driver():
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920x1080")
 
-    # Используем переменную окружения для хоста Selenium
-    # 'selenium' - это имя сервиса в вашем docker-compose.yml для локального запуска
-    # На Render это будет внутреннее имя вашего Selenium сервиса (например, 'my-selenium.internal')
-    selenium_host = os.environ.get("SELENIUM_HOST", "selenium")
-
-    # И ЭТА СТРОКА ДОЛЖНА БЫТЬ ТАКОЙ
-    remote_url = f"http://localhost:4444"
-    logging.info(f"Attempting to connect to Selenium at: {remote_url}")
-
-    driver = webdriver.Remote(
-        command_executor=remote_url,
-        options=options
-    )
+    # Используем локальный ChromeDriver
+    # Убедитесь, что CHROMEDRIVER_PATH указывает на путь к исполняемому файлу chromedriver/chromium-driver
+    service = Service(executable_path=os.environ.get("CHROMEDRIVER_PATH", "/usr/bin/chromium-driver"))
+    driver = webdriver.Chrome(service=service, options=options)
     return driver
 # 🔎 Поиск ссылки на условия
 def find_terms_link(driver, homepage_url):
