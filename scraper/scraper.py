@@ -46,7 +46,13 @@ def get_driver():
     options.add_argument("--window-size=1920x1080")
 
 
-    driver = webdriver.Chrome(options=options)    
+    remote_url = "http://selenium:4444"
+
+    driver = webdriver.Remote(
+        command_executor=remote_url,
+        options=options
+    )
+
     return driver
 # 🔎 Поиск ссылки на условия
 def find_terms_link(driver, homepage_url):
