@@ -18,6 +18,7 @@ try:
     from selenium.webdriver.support import expected_conditions as EC
     from webdriver_manager.chrome import ChromeDriverManager
 
+    from selenium.webdriver.chrome.service import Service
 
     from flask import Flask, jsonify
     import subprocess
@@ -74,7 +75,7 @@ def init_driver():
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument(f"user-agent={HEADERS['User-Agent']}")
 
-        driver = webdriver.Chrome(ChromeDriverManager.install(),options=options)
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()),options=options)
         logging.info("Chrome WebDriver initialized")
         return driver
     except Exception as e:
