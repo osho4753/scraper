@@ -51,19 +51,16 @@ def get_driver():
     # 'selenium' - это имя сервиса в вашем docker-compose.yml для локального запуска
     # На Render это будет внутреннее имя вашего Selenium сервиса (например, 'my-selenium.internal')
     selenium_host = os.environ.get("SELENIUM_HOST", "selenium")
-    
-    # Формируем полный URL для подключения к Selenium
-    # /wd/hub - это стандартный путь для API Selenium WebDriver
-    remote_url = f"http://{selenium_host}:4444/wd/hub"
+
+    # И ЭТА СТРОКА ДОЛЖНА БЫТЬ ТАКОЙ
+    remote_url = f"http://localhost:4444"
     logging.info(f"Attempting to connect to Selenium at: {remote_url}")
 
     driver = webdriver.Remote(
         command_executor=remote_url,
         options=options
     )
-
     return driver
-
 # 🔎 Поиск ссылки на условия
 def find_terms_link(driver, homepage_url):
     try:
