@@ -6,49 +6,19 @@ FROM selenium/standalone-chrome:latest
 # Устанавливаем Python и pip, необходимые для вашего скрейпера
 # Используем apt-get из Debian, так как базовый образ Selenium основан на Debian
 USER root
+# ...
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
-    # Добавляем зависимости, которые могут быть нужны для pdfminer или requests
-    # libjpeg-dev и zlib1g-dev часто нужны для обработки изображений/PDF в Python
-    # build-essential для компиляции некоторых Python пакетов
+    # Эти пакеты чаще всего нужны для работы Python библиотек (например, Pillow для изображений)
     libjpeg-dev \
     zlib1g-dev \
     build-essential \
-    # Дополнительные зависимости для Flask
-    # libffi-dev для cryptography, часто требуется для requests/Flask security
     libffi-dev \
     libssl-dev \
-     fonts-liberation \
-     libasound2 \
-     libatk-bridge2.0-0 \
-     libatk1.0-0 \
-     libcairo2 \
-     libcups2 \
-     libdbus-1-3 \
-     libexpat1 \
-     libfontconfig1 \
-     libgbm1 \
-     libgdk-pixbuf2.0-0 \
-     libglib2.0-0 \
-     libgtk-3-0 \
-     libnspr4 \
-     libnss3 \
-     libpango-1.0-0 \
-     libpangocairo-1.0-0 \
-     libxcomposite1 \
-     libxdamage1 \
-     libxext6 \
-     libxfixes3 \
-     libxkbcommon0 \
-     libxrandr2 \
-     libxrender1 \
-     libxshmfence6 \
-     libxtst6 \
-     lsb-release \
-     xdg-utils \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
+# ...
 
 # Переключаемся обратно на пользователя Selenium, чтобы не запускать как root
 # Это хорошая практика безопасности, но может вызвать проблемы с правами
