@@ -267,12 +267,6 @@ def start_scraper():
     thread.start()
     return jsonify({"status": "scraper started"})
 
-if __name__ == "__main__":
-    try:
-        port = int(os.environ.get("PORT", 3000))
-        app.run(host="0.0.0.0", port=port)
-    except Exception as e:
-        logging.error(f"[Flask] {e}")
 @app.route("/extract-text")
 def extract_text_route():
     try:
@@ -284,3 +278,10 @@ def extract_text_route():
         return jsonify({"status": "ok", "text_sample": text[:300]})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
+
+if __name__ == "__main__":
+    try:
+        port = int(os.environ.get("PORT", 3000))
+        app.run(host="0.0.0.0", port=port)
+    except Exception as e:
+        logging.error(f"[Flask] {e}")
