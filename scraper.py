@@ -12,10 +12,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
-
-# Удалите эти импорты, так как они не используются для remote WebDriver
-# from webdriver_manager.chrome import ChromeDriverManager
-# from selenium.webdriver.chrome.service import Service
+from requests.exceptions import ConnectionError, Timeout
 
 # 🔧 Логгинг
 logging.basicConfig(
@@ -38,6 +35,37 @@ def clean_text(text):
     text = re.sub(r'[ \t]+', ' ', text)
     return text.strip()
 
+# Функция ожидания Selenium
+def wait_for_selenium(url, timeout=180, interval=5): 
+    selenium_status_url = f"{url}/status" # URL для проверки статуса Selenium
+    logging.info(f"Waiting for Selenium to be ready at {selenium_status_url}...")
+    start_time = time.time()
+
+    while True:
+        try:
+            response = requests.get(selenium_status_url, timeout=interval) 
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data and data.get('value', {}).get('ready'):
+                    logging.info("Selenium is READY! Starting browser operations.")
+                    return True
+                else:
+                    logging.info(f"Selenium status received, but not yet ready: {data.get('value', {}).get('message', 'No message')}. Retrying...")
+            else:
+                logging.info(f"Selenium status check returned HTTP {response.status_code}. Retrying...")
+
+        except (ConnectionError, Timeout) as e:
+            logging.info(f"Connection to Selenium refused or timed out: {e}. Retrying...")
+        except Exception as e:
+            logging.warning(f"An unexpected error occurred while checking Selenium status: {e}. Retrying...")
+
+        if time.time() - start_time > timeout:
+            logging.error(f"Timeout waiting for Selenium to become available after {timeout} seconds.")
+            raise Exception("Selenium did not become available within the allocated time.")
+        
+        time.sleep(interval)
+
 # 🚗 Headless Chrome driver
 def get_driver():
     options = Options()
@@ -50,6 +78,8 @@ def get_driver():
     # Используем локальный ChromeDriver
     remote_url = "http://localhost:4444/wd/hub" # Жестко кодируем localhost
     logging.info(f"Attempting to connect to Selenium at: {remote_url}")
+
+    wait_for_selenium(remote_url)
 
     driver = webdriver.Remote(
         command_executor=remote_url,
