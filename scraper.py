@@ -46,7 +46,7 @@ def get_driver():
     options.add_argument("--window-size=1920x1080")
 
 
-    remote_url = "http://selenium:4444"
+    remote_url = "https://standalone-chrome-latest-27xo.onrender.com/"
 
     driver = webdriver.Remote(
         command_executor=remote_url,

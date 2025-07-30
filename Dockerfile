@@ -1,24 +1,14 @@
-FROM python:3.11
-
-# Установка wget, unzip и Java для selenium server (если нужен)
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update && apt-get install -y wget unzip openjdk-11-jre-headless
+# Dockerfile в папке ./scraper
+FROM python:3.9-slim-buster
 
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY scraper.py .
+COPY . .
 
-# Скачиваем selenium standalone chrome сервер (пример, уточни версию)
-RUN wget https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.8.0/selenium-server-4.8.0.jar
-
-# Копируем скрипт запуска
-COPY entrypoint.sh .
-RUN chmod +x entrypoint.sh
-
-EXPOSE 4444 3000
-
-CMD ["./entrypoint.sh"]
+# Если ваш скрейпер запускается как скрипт
+CMD ["python", "scraper.py"]
+# Или если это Flask/FastAPI приложение
+# CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:3000", "your_app:app"]
