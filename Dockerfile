@@ -22,4 +22,4 @@ COPY . .
 
 EXPOSE 3000
 
-CMD ["python", "main.py"]
+CMD ["python", "scraper.py"]
