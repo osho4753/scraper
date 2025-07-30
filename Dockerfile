@@ -35,7 +35,7 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /var/log/supervisor
+RUN mkdir -p /var/log/supervisor && chown -R seluser:seluser /var/log/supervisor
 
 USER seluser
 
@@ -47,6 +47,7 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 COPY . .
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+EXPOSE 3000
 
 CMD ["/usr/bin/supervisord"]
 
