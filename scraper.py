@@ -1,5 +1,4 @@
 try:
-    import json
     import os
     import re
     import time
@@ -7,7 +6,6 @@ try:
     import logging
     import sys
     import requests
-    import argparse
 
     from bs4 import BeautifulSoup
     from urllib.parse import urljoin, unquote
@@ -18,17 +16,15 @@ try:
     from selenium.webdriver.chrome.options import Options
     from selenium.webdriver.support.ui import WebDriverWait
     from selenium.webdriver.support import expected_conditions as EC
-    from selenium.webdriver.chrome.service import Service
-    import urllib3
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-    from webdriver_manager.chrome import ChromeDriverManager
+
+
     from flask import Flask, jsonify
     import subprocess
     logging.info(subprocess.getoutput("google-chrome-stable --version"))
 
 except Exception as e:
-    print(f"[FATAL IMPORT ERROR] {e}")
+    logging.error(f"[FATAL IMPORT ERROR] {e}")
     sys.exit(1)
 
 # Логгинг
@@ -61,15 +57,22 @@ headers = {
 def init_driver():
     try:
         options = Options()
-        options.add_argument("--headless=new")
-        options.add_argument("--disable-gpu") 
-        options.add_argument("--enable-unsafe-swiftshader")
+        options.add_experimental_option("prefs", {
+            "profile.default_content_setting_values.notifications": 2,
+            "profile.default_content_setting_values.geolocation": 2
+        })
+        options.add_argument("--disable-background-networking")
+        options.add_argument("--disable-default-apps")
+        options.add_argument("--disable-sync")
+        options.add_argument("--metrics-recording-only")
+        options.add_argument('--headless=new')
+        options.add_argument('--disable-gpu')
+        options.add_argument('--disable-software-rasterizer')
+        options.add_argument('--ignore-certificate-errors')
+
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
-        options.add_argument("--disable-blink-features=AutomationControlled")
-        options.add_argument(
-        "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
-        )
+        options.add_argument(f"user-agent={HEADERS['User-Agent']}")
 
         driver = webdriver.Chrome(options=options)
         logging.info("Chrome WebDriver initialized")
@@ -115,7 +118,7 @@ def download_and_extract_pdf(pdf_url, homepage_url):
     try:
         session = requests.Session()
         session.headers.update(headers)
-        response = session.get(pdf_url, stream=True, verify=False, timeout=10)
+        response = session.get(pdf_url, stream=True, timeout=10)
         response.raise_for_status()
         with open("terms_and_conditions.pdf", "wb") as f:
             f.write(response.content)
@@ -188,7 +191,7 @@ def detect_pdf_link(driver, base_url):
 def extract_terms(driver, homepage_url):
     try:
         try:
-            response = requests.get("https://www.martessport.eu/cz",headers=headers, verify=False, timeout=5)
+            response = requests.get("https://www.martessport.eu/cz",headers=headers, timeout=5)
             logging.info(f"[requests test] Status: {response.status_code}")
         except Exception as e:
             logging.error(f"[requests test] Failed: {e}")
@@ -231,9 +234,15 @@ def main(homepage):
     try:
         driver = init_driver()
         try:
+            driver = init_driver()
             extract_terms(driver, homepage)
+        except Exception as e:
+            logging.error(f"[main] {e}")
         finally:
-            driver.quit()
+            if driver:
+                logging.info(f"[main] is done")
+
+                driver.quit()
     except Exception as e:
         logging.error(f"[main] {e}")
 
