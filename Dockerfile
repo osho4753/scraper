@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.11
 
 # Установка wget, unzip и Java для selenium server (если нужен)
 ENV DEBIAN_FRONTEND=noninteractive
