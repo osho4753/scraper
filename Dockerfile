@@ -1,25 +1,27 @@
-FROM python:3.10-slim
+# Используем официальный образ Python
+FROM python:3.11-slim
 
+# Устанавливаем рабочую директорию
+WORKDIR /app
+
+# Устанавливаем системные зависимости для pdfminer (и pip)
 RUN apt-get update && apt-get install -y \
-    wget gnupg unzip curl \
-    fonts-liberation libappindicator3-1 libasound2 \
-    libatk-bridge2.0-0 libatk1.0-0 libcups2 \
-    libdbus-1-3 libgdk-pixbuf2.0-0 libnspr4 \
-    libnss3 libx11-xcb1 libxcomposite1 libxdamage1 \
-    libxrandr2 xdg-utils libu2f-udev \
-    libgbm-dev libxshmfence-dev libxrender1 \
-    libxi6 libxtst6 lsb-release ca-certificates
+    build-essential \
+    libpoppler-cpp-dev \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
-    && apt install -y ./google-chrome-stable_current_amd64.deb \
-    && rm google-chrome-stable_current_amd64.deb
-
+# Копируем зависимости
 COPY requirements.txt .
+
+# Устанавливаем зависимости
 RUN pip install --no-cache-dir -r requirements.txt
 
-WORKDIR /app
+# Копируем всё приложение внутрь контейнера
 COPY . .
 
-EXPOSE 3000
+# Указываем порт (по умолчанию 3000, Render использует переменную PORT)
+ENV PORT=3000
 
+# Команда запуска Flask-приложения
 CMD ["python", "scraper.py"]
