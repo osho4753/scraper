@@ -1,27 +1,11 @@
-# Используем официальный образ Python
-FROM python:3.11-slim
-
-# Устанавливаем рабочую директорию
-WORKDIR /app
-
-# Устанавливаем системные зависимости для pdfminer (и pip)
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpoppler-cpp-dev \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
-
-# Копируем зависимости
+FROM cypress/browsers:node-22.17.1-chrome-138.0.7204.157-1-ff-140.0.4-edge-138.0.3351.83-1
+RUN apt-get update && apt-get install -y python3 python3-pip
+RUN echo $(python3 -m site --user-base)
 COPY requirements.txt .
-
-# Устанавливаем зависимости
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Копируем всё приложение внутрь контейнера
+ENV PATH=/root/.local/bin:$PATH
+RUN apt-get update && apt-get install -y python3-venv python3-pip && \
+    python3 -m venv /app/venv && \
+    . /app/venv/bin/activate && \
+    pip install --no-cache-dir -r requirements.txt
 COPY . .
-
-# Указываем порт (по умолчанию 3000, Render использует переменную PORT)
-ENV PORT=3000
-
-# Команда запуска Flask-приложения
-CMD ["python", "scraper.py"]
+CMD ["/app/venv/bin/python", "scraper.py"]
