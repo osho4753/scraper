@@ -8,17 +8,35 @@ FROM selenium/standalone-chrome:latest
 USER root
 # ...
 RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
-    # Эти пакеты чаще всего нужны для работы Python библиотек (например, Pillow для изображений)
-    libjpeg-dev \
-    zlib1g-dev \
-    build-essential \
-    libffi-dev \
-    libssl-dev \
-    --no-install-recommends \
+    wget \
+    unzip \
+    curl \
+    gnupg \
+    supervisor \
+    libglib2.0-0 \
+    libnss3 \
+    libgconf-2-4 \
+    libfontconfig1 \
+    libxss1 \
+    libappindicator3-1 \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libcups2 \
+    libdbus-1-3 \
+    libgdk-pixbuf2.0-0 \
+    libnspr4 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    libxshmfence1 \
+    libgbm1 \
+    libgtk-3-0 \
+    xdg-utils \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
-# ...
+
 RUN mkdir -p /var/log/supervisor
 
 USER seluser
