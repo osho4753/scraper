@@ -1,6 +1,8 @@
 FROM python:3.11-slim
 
 # Установка wget, unzip и Java для selenium server (если нужен)
+ENV DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update && apt-get install -y wget unzip openjdk-11-jre-headless
 
 WORKDIR /app
