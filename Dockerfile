@@ -1,11 +1,47 @@
-FROM cypress/browsers:node-22.17.1-chrome-138.0.7204.157-1-ff-140.0.4-edge-138.0.3351.83-1
-RUN apt-get update && apt-get install -y python3 python3-pip
-RUN echo $(python3 -m site --user-base)
+FROM python:3.11-slim
+
+# Установка зависимостей системы
+RUN apt-get update && apt-get install -y \
+    wget \
+    curl \
+    unzip \
+    gnupg \
+    ca-certificates \
+    fonts-liberation \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libc6 \
+    libcairo2 \
+    libcups2 \
+    libdbus-1-3 \
+    libgdk-pixbuf2.0-0 \
+    libnspr4 \
+    libnss3 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    xdg-utils \
+    libu2f-udev \
+    libvulkan1 \
+    libxss1 \
+    libgtk-3-0 \
+    --no-install-recommends && rm -rf /var/lib/apt/lists/*
+
+# Установка Google Chrome
+RUN wget -q -O google-chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+    apt-get update && \
+    apt-get install -y ./google-chrome.deb && \
+    rm google-chrome.deb
+
+# Установка Python-зависимостей
+WORKDIR /app
 COPY requirements.txt .
-ENV PATH=/root/.local/bin:$PATH
-RUN apt-get update && apt-get install -y python3-venv python3-pip && \
-    python3 -m venv /app/venv && \
-    . /app/venv/bin/activate && \
+RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
+
+# Копирование всего проекта
 COPY . .
-CMD ["/app/venv/bin/python", "scraper.py"]
+
+ENV PATH="/usr/local/bin:$PATH"
