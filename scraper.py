@@ -31,7 +31,7 @@ except Exception as e:
 logging.basicConfig(
     stream=sys.stdout,
     level=logging.INFO,
-    format='%(asctime)s %(levelname)s:%(message)s'
+    format='%(asctime)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s'
 )
 
 TERMS_KEYWORDS = [
@@ -251,7 +251,7 @@ app = Flask(__name__)
 
 def run_scraper():
     try:
-        logging.info("Starting scraper...")
+        print(">>> Scraper thread started")
         main('https://www.martessport.eu/cz')
         logging.info("Scraper finished.")
     except Exception as e:
@@ -273,3 +273,14 @@ if __name__ == "__main__":
         app.run(host="0.0.0.0", port=port)
     except Exception as e:
         logging.error(f"[Flask] {e}")
+@app.route("/extract-text")
+def extract_text_route():
+    try:
+        driver = init_driver()
+        print(">>> Scraper thread started")
+
+        text = extract_terms(driver, "https://www.martessport.eu/cz")
+        driver.quit()
+        return jsonify({"status": "ok", "text_sample": text[:300]})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
