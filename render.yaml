@@ -1,0 +1,23 @@
+services:
+  - type: cron
+    name: test-hello-cron
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -u jobs/job_hello.py
+    schedule: '*/2 * * * *' # каждые 5 минут (UTC)
+    envVars:
+      - key: TEST_MESSAGE
+        value: 'it works 🎉'
+      - key: PYTHONUNBUFFERED
+        value: '1'
+
+  # Крон №2 — каждые 7 минут
+  - type: cron
+    name: test-random-cron
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -u jobs/job_random.py
+    schedule: '*/4 * * * *' # каждые 4 минуты (UTC)
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: '1'
